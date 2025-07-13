@@ -4,7 +4,7 @@ print("custom lms enabaled")
 local TARGET_SOUNDS = {
 	["LastSurvivor"] = {
 		originalId = "rbxassetid://115884097233860",
-		customAsset = getcustomasset("thedarknessinyourheart.mp3"),
+		customAsset = getcustomasset("proeliumfatale.mp3"),
 	},
 	["AmbienceReplacement"] = {
 		originalId = "rbxassetid://137266220091579",
