@@ -25,6 +25,11 @@ local function applyTheme(replacementTable)
 	for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
 		if sound:IsA("Sound") and replacementTable[sound.SoundId] then
 			sound.SoundId = replacementTable[sound.SoundId]
+
+			if replacementTable == OLD1X_REPLACEMENTS then
+				sound.Volume = 2 -- 🔊 Louder volume for old1x
+			end
+
 			print("🔁 Replaced SoundId for", sound.Name)
 		end
 	end
@@ -37,12 +42,22 @@ local function hookNewSounds()
 			child:GetPropertyChangedSignal("SoundId"):Connect(function()
 				if ActiveReplacements[child.SoundId] then
 					child.SoundId = ActiveReplacements[child.SoundId]
+
+					if ActiveReplacements == OLD1X_REPLACEMENTS then
+						child.Volume = 3.2
+					end
+
 					print("🔁 Updated SoundId for", child.Name)
 				end
 			end)
 
 			if ActiveReplacements[child.SoundId] then
 				child.SoundId = ActiveReplacements[child.SoundId]
+
+				if ActiveReplacements == OLD1X_REPLACEMENTS then
+					child.Volume = 2
+				end
+
 				print("🔁 Replaced SoundId for", child.Name)
 			end
 		end
@@ -80,7 +95,7 @@ local function determineTheme()
 	return nil, "none"
 end
 
--- Main check loop
+-- Main loop
 task.wait(3)
 hookNewSounds()
 
