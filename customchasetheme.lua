@@ -27,7 +27,7 @@ local function applyTheme(replacementTable)
 			sound.SoundId = replacementTable[sound.SoundId]
 
 			if replacementTable == OLD1X_REPLACEMENTS then
-				sound.Volume = 2 -- 🔊 Louder volume for old1x
+				sound.Volume = 6 -- 🔊 Louder volume for old1x
 			end
 
 			print("🔁 Replaced SoundId for", sound.Name)
@@ -44,7 +44,7 @@ local function hookNewSounds()
 					child.SoundId = ActiveReplacements[child.SoundId]
 
 					if ActiveReplacements == OLD1X_REPLACEMENTS then
-						child.Volume = 3.2
+						child.Volume = 6
 					end
 
 					print("🔁 Updated SoundId for", child.Name)
@@ -55,7 +55,7 @@ local function hookNewSounds()
 				child.SoundId = ActiveReplacements[child.SoundId]
 
 				if ActiveReplacements == OLD1X_REPLACEMENTS then
-					child.Volume = 2
+					child.Volume = 6
 				end
 
 				print("🔁 Replaced SoundId for", child.Name)
