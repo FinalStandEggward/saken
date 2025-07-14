@@ -2,59 +2,75 @@ local Players = game:GetService("Players")
 local THEMES_FOLDER = workspace:WaitForChild("Themes")
 local LocalPlayer = Players.LocalPlayer
 
-print("🎵 Custom LMS Enabled")
+print("🎵 LMS Replacement System Active")
 
--- Base sound ID map (Ambience untouched)
-local TARGET_SOUNDS = {
-	["LastSurvivor"] = {
-		originalId = "rbxassetid://115884097233860", -- LMS music
-		customAsset = nil, -- We'll choose this dynamically below
-	},
-	["AmbienceReplacement"] = {
-		originalId = "rbxassetid://137266220091579", -- Ambient music
-		customAsset = getcustomasset("vanitylmsretake.mp3"),
-	}
+-- LMS Sound IDs
+local LMS_IDS = {
+	SelfHatred   = "rbxassetid://115884097233860",
+	VanillaLMS   = "rbxassetid://71057332615441",
+	VanityLMS    = "rbxassetid://137266220091579",
 }
 
--- Determine proper LMS track based on killer and skin
-local function determineLMSAsset()
-	local killerModel = workspace:FindFirstChild("Players")
-		and workspace.Players:FindFirstChild("Killers")
-		and workspace.Players.Killers:FindFirstChild("1x1x1x1")
+-- Dynamic replacement logic for each LMS type
+local SOUND_OPTIONS = {
+	["SelfHatred"] = function()
+		local killerModel = workspace:FindFirstChild("Players")
+			and workspace.Players:FindFirstChild("Killers")
+			and workspace.Players.Killers:FindFirstChild("1x1x1x1")
 
-	if not killerModel then
-		return getcustomasset("thedarknessinyourheart.mp3")
+		if not killerModel then return getcustomasset("thedarknessinyourheart.mp3") end
+
+		local humanoid = killerModel:FindFirstChildOfClass("Humanoid")
+		if not humanoid or humanoid.Health <= 500 then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local equippedSkin = LocalPlayer:FindFirstChild("PlayerData")
+			and LocalPlayer.PlayerData:FindFirstChild("Equipped")
+			and LocalPlayer.PlayerData.Equipped:FindFirstChild("Skins")
+			and LocalPlayer.PlayerData.Equipped.Skins:FindFirstChild("1x1x1x1")
+
+		if equippedSkin and equippedSkin.Value == "Hacklord1x1x1x1" then
+			return getcustomasset("ProeliumFatale.mp3")
+		else
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+	end,
+
+	["VanillaLMS"] = function()
+		local pool = {
+			LMS_IDS.VanillaLMS,
+			getcustomasset("oldlms.mp3"),
+			getcustomasset("oldestlms.mp3"),
+		}
+		return pool[math.random(1, #pool)]
+	end,
+
+	["VanityLMS"] = function()
+		return getcustomasset("vanitylmsretake.mp3")
+	end,
+}
+
+-- Sound replacement utility
+local function replaceSound(assetId, getReplacement)
+	local replacement = getReplacement()
+	if replacement == assetId then
+		print("▶️ Keeping original LMS: " .. assetId)
+		return
 	end
 
-	local humanoid = killerModel:FindFirstChildOfClass("Humanoid")
-	if not humanoid or humanoid.Health <= 500 then
-		return getcustomasset("thedarknessinyourheart.mp3")
-	end
-
-	local equippedSkin = LocalPlayer:FindFirstChild("PlayerData")
-	and LocalPlayer.PlayerData:FindFirstChild("Equipped")
-	and LocalPlayer.PlayerData.Equipped:FindFirstChild("Skins")
-	and LocalPlayer.PlayerData.Equipped.Skins:FindFirstChild("1x1x1x1")
-
-	if equippedSkin and equippedSkin.Value == "Hacklord1x1x1x1" then
-		return getcustomasset("ProeliumFatale.mp3")
-	else
-		return getcustomasset("thedarknessinyourheart.mp3")
-	end
-end
-
--- Inject appropriate custom asset into slot
-local function replaceSound(name, asset)
 	local sound = Instance.new("Sound")
-	sound.Name = name
-	sound.SoundId = asset
+	sound.Name = "LMSOverride"
+	sound.SoundId = replacement
 	sound.Looped = true
-	sound.Volume = 0 -- quiet until loaded
+	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
 	sound.Loaded:Connect(function()
-		sound.Volume = 5
-		sound:Play()
+		task.defer(function()
+			sound.Volume = 5
+			sound:Play()
+		end)
 	end)
 
 	task.delay(2, function()
@@ -63,32 +79,42 @@ local function replaceSound(name, asset)
 			sound:Play()
 		end
 	end)
+
+	print("🔁 LMS Replaced with:", replacement)
 end
 
--- First scan
-for name, data in pairs(TARGET_SOUNDS) do
-	for _, child in ipairs(THEMES_FOLDER:GetChildren()) do
-		if child:IsA("Sound") and child.SoundId == data.originalId then
-			child:Destroy()
-			if name == "LastSurvivor" then
-				data.customAsset = determineLMSAsset()
-			end
-			replaceSound(name, data.customAsset)
-		end
+-- First pass on existing sounds
+for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
+	if not sound:IsA("Sound") then continue end
+
+	if sound.SoundId == LMS_IDS.SelfHatred then
+		sound:Destroy()
+		replaceSound(LMS_IDS.SelfHatred, SOUND_OPTIONS["SelfHatred"])
+
+	elseif sound.SoundId == LMS_IDS.VanillaLMS then
+		sound:Destroy()
+		replaceSound(LMS_IDS.VanillaLMS, SOUND_OPTIONS["VanillaLMS"])
+
+	elseif sound.SoundId == LMS_IDS.VanityLMS then
+		sound:Destroy()
+		replaceSound(LMS_IDS.VanityLMS, SOUND_OPTIONS["VanityLMS"])
 	end
 end
 
--- Live monitoring
+-- Handle LMS being added live
 THEMES_FOLDER.ChildAdded:Connect(function(child)
-	if child:IsA("Sound") then
-		for name, data in pairs(TARGET_SOUNDS) do
-			if child.SoundId == data.originalId then
-				child:Destroy()
-				if name == "LastSurvivor" then
-					data.customAsset = determineLMSAsset()
-				end
-				replaceSound(name, data.customAsset)
-			end
-		end
+	if not child:IsA("Sound") then return end
+
+	if child.SoundId == LMS_IDS.SelfHatred then
+		child:Destroy()
+		replaceSound(LMS_IDS.SelfHatred, SOUND_OPTIONS["SelfHatred"])
+
+	elseif child.SoundId == LMS_IDS.VanillaLMS then
+		child:Destroy()
+		replaceSound(LMS_IDS.VanillaLMS, SOUND_OPTIONS["VanillaLMS"])
+
+	elseif child.SoundId == LMS_IDS.VanityLMS then
+		child:Destroy()
+		replaceSound(LMS_IDS.VanityLMS, SOUND_OPTIONS["VanityLMS"])
 	end
 end)
