@@ -62,7 +62,7 @@ local function replaceSound(assetId, getReplacement)
 	local sound = Instance.new("Sound")
 	sound.Name = "LMSOverride"
 	sound.SoundId = replacement
-	sound.Looped = true
+	sound.Looped = false
 	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
