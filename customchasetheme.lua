@@ -27,7 +27,11 @@ local function applyTheme(replacementTable)
 			sound.SoundId = replacementTable[sound.SoundId]
 
 			if replacementTable == OLD1X_REPLACEMENTS then
-				sound.Volume = 6 -- 🔊 Louder volume for old1x
+				-- Set volume after load to avoid Roblox resetting it
+				sound.Volume = 0
+				sound.Loaded:Connect(function()
+					sound.Volume = 6
+				end)
 			end
 
 			print("🔁 Replaced SoundId for", sound.Name)
@@ -44,7 +48,10 @@ local function hookNewSounds()
 					child.SoundId = ActiveReplacements[child.SoundId]
 
 					if ActiveReplacements == OLD1X_REPLACEMENTS then
-						child.Volume = 6
+						child.Volume = 0
+						child.Loaded:Connect(function()
+							child.Volume = 6
+						end)
 					end
 
 					print("🔁 Updated SoundId for", child.Name)
@@ -55,7 +62,10 @@ local function hookNewSounds()
 				child.SoundId = ActiveReplacements[child.SoundId]
 
 				if ActiveReplacements == OLD1X_REPLACEMENTS then
-					child.Volume = 6
+					child.Volume = 0
+					child.Loaded:Connect(function()
+						child.Volume = 6
+					end)
 				end
 
 				print("🔁 Replaced SoundId for", child.Name)
