@@ -29,10 +29,9 @@ local function applyTheme(replacementTable)
 			if replacementTable == OLD1X_REPLACEMENTS then
 				-- Set volume after load to avoid Roblox resetting it
 				sound.Loaded:Connect(function()
-					task.delay(0.1, function()
-						sound.Volume = 6
-					end)
+					sound.Volume = 6
 				end)
+
 
 
 			end
