@@ -4,6 +4,28 @@ local LocalPlayer = Players.LocalPlayer
 
 print("🎵 LMS Replacement System Active")
 
+local PLAYERS_FOLDER = workspace:WaitForChild("Players")
+
+PLAYERS_FOLDER.ChildRemoved:Connect(function()
+	-- Check if no models remain
+	task.delay(0.25, function()
+		local remaining = #PLAYERS_FOLDER:GetChildren()
+		if remaining == 0 then
+			stopAllLMSMusic()
+		end
+	end)
+end)
+
+-- Optional: handle cases where they all vanish at once
+PLAYERS_FOLDER.ChildAdded:Connect(function()
+	task.delay(0.25, function()
+		if #PLAYERS_FOLDER:GetChildren() == 0 then
+			stopAllLMSMusic()
+		end
+	end)
+end)
+
+
 -- LMS Sound IDs
 local LMS_IDS = {
 	SelfHatred   = "rbxassetid://115884097233860",
@@ -118,3 +140,17 @@ THEMES_FOLDER.ChildAdded:Connect(function(child)
 		replaceSound(LMS_IDS.VanityLMS, SOUND_OPTIONS["VanityLMS"])
 	end
 end)
+
+
+
+
+-- 🔇 Stop all LMS music when no players are left
+local function stopAllLMSMusic()
+	for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
+		if sound:IsA("Sound") and sound.IsPlaying then
+			print("⛔ Stopping LMS theme:", sound.Name)
+			sound:Stop()
+		end
+	end
+end
+
