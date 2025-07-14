@@ -2,16 +2,6 @@ local THEMES_FOLDER = workspace:WaitForChild("Themes")
 local TARGET_ID = "rbxassetid://113613352374472"
 local CUSTOM_ASSET = getcustomasset("safespace.mp3")
 
-local function stopLobbyMusic()
-	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
-		if s:IsA("Sound") and s.Name:lower() == "lobby" and s.IsPlaying then
-			print("⛔ Stopping overlapping lobby music")
-			s:Stop()
-		end
-	end
-end
-
-
 -- Replace logic
 local function replaceLobbySound()
 	for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
