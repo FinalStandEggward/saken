@@ -20,15 +20,15 @@ local OLD1X_REPLACEMENTS = {
 local ActiveReplacements = {}
 local CURRENT_THEME = "none"
 
--- 🔒 Force suppression of old1x layer 1
-local function suppressOld1xLayer1(sound)
+-- 🔒 Force suppression of old1xlayer1.mp3 or "Destroying"
+local function suppressIfOld1xLayer1(sound)
 	if not sound:IsA("Sound") then return end
-	if sound.SoundId == getcustomasset("old1xlayer1.mp3") or sound.Name == "Destroying" then
+	local sid = sound.SoundId
+	if sid == getcustomasset("old1xlayer1.mp3") or sound.Name == "Destroying" then
 		if sound.Volume > 0 then
 			sound.Volume = 0
-			print("🔇 Suppressed old1xlayer1 / Destroying:", sound.Name)
+			print("🔇 Suppressed:", sound.Name)
 		end
-
 		task.defer(function()
 			sound:GetPropertyChangedSignal("Volume"):Connect(function()
 				if sound.Volume > 0 then
@@ -50,8 +50,7 @@ local function applyTheme(replacementTable)
 				sound.Loaded:Connect(function()
 					sound.Volume = 6
 				end)
-
-				suppressOld1xLayer1(sound)
+				suppressIfOld1xLayer1(sound)
 			end
 
 			print("🔁 Replaced SoundId for", sound.Name)
@@ -62,24 +61,9 @@ end
 -- Monitor future sound additions and SoundId changes
 local function hookNewSounds()
 	THEMES_FOLDER.ChildAdded:Connect(function(child)
-		if child:IsA("Sound") then
-			child:GetPropertyChangedSignal("SoundId"):Connect(function()
-				if ActiveReplacements[child.SoundId] then
-					child.SoundId = ActiveReplacements[child.SoundId]
+		if not child:IsA("Sound") then return end
 
-					if ActiveReplacements == OLD1X_REPLACEMENTS then
-						child.Volume = 0
-						child.Loaded:Connect(function()
-							child.Volume = 6
-						end)
-
-						suppressOld1xLayer1(child)
-					end
-
-					print("🔁 Updated SoundId for", child.Name)
-				end
-			end)
-
+		child:GetPropertyChangedSignal("SoundId"):Connect(function()
 			if ActiveReplacements[child.SoundId] then
 				child.SoundId = ActiveReplacements[child.SoundId]
 
@@ -88,17 +72,30 @@ local function hookNewSounds()
 					child.Loaded:Connect(function()
 						child.Volume = 6
 					end)
-
-					suppressOld1xLayer1(child)
+					suppressIfOld1xLayer1(child)
 				end
 
-				print("🔁 Replaced SoundId for", child.Name)
+				print("🔁 Updated SoundId for", child.Name)
 			end
+		end)
+
+		if ActiveReplacements[child.SoundId] then
+			child.SoundId = ActiveReplacements[child.SoundId]
+
+			if ActiveReplacements == OLD1X_REPLACEMENTS then
+				child.Volume = 0
+				child.Loaded:Connect(function()
+					child.Volume = 6
+				end)
+				suppressIfOld1xLayer1(child)
+			end
+
+			print("🔁 Replaced SoundId for", child.Name)
 		end
 	end)
 end
 
--- Check if we should override music and which theme to use
+-- Determine whether to use Hacklord or Old1x
 local function determineTheme()
 	for _, player in ipairs(Players:GetPlayers()) do
 		local char = player.Character
@@ -129,7 +126,7 @@ local function determineTheme()
 	return nil, "none"
 end
 
--- Main loop
+-- 🚀 Begin execution
 task.wait(3)
 hookNewSounds()
 
