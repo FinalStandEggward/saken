@@ -29,7 +29,7 @@ local function applyTheme(replacementTable)
 			if replacementTable == OLD1X_REPLACEMENTS then
 				-- Set volume after load to avoid Roblox resetting it
 				sound.Loaded:Connect(function()
-					sound.Volume = 6
+					sound.Volume = 3
 				end)
 
 
@@ -52,7 +52,7 @@ local function hookNewSounds()
 					if ActiveReplacements == OLD1X_REPLACEMENTS then
 						child.Volume = 0
 						child.Loaded:Connect(function()
-							child.Volume = 6
+							child.Volume = 3
 						end)
 					end
 
@@ -66,7 +66,7 @@ local function hookNewSounds()
 				if ActiveReplacements == OLD1X_REPLACEMENTS then
 					child.Volume = 0
 					child.Loaded:Connect(function()
-						child.Volume = 6
+						child.Volume = 3
 					end)
 				end
 
