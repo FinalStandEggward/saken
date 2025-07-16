@@ -1,23 +1,22 @@
 local THEMES_FOLDER = workspace:WaitForChild("Themes")
+local MAP_FOLDER = workspace:WaitForChild("Map")
+
 local TARGET_ID = "rbxassetid://113613352374472"
 local CUSTOM_ASSET = getcustomasset("safespace.mp3")
 local CUSTOM_NAME = "LobbyOverride"
 
--- 🛑 Stop all other themes except our own
-local function stopOtherMusic()
-	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
-		if s:IsA("Sound") and s.Name ~= CUSTOM_NAME then
-			pcall(function()
-				s:Stop()
-				s:Destroy()
-			end)
-		end
+-- 🧼 Stop only this sound
+local function stopLobbyOverride()
+	local sound = THEMES_FOLDER:FindFirstChild(CUSTOM_NAME)
+	if sound and sound:IsA("Sound") then
+		print("🛑 Stopping lobby override theme")
+		sound:Stop()
+		sound:Destroy()
 	end
 end
 
 -- 🎵 Create and play the lobby override
-local function playCustomLobby()
-	-- Avoid duplicates
+local function playLobbyOverride()
 	if THEMES_FOLDER:FindFirstChild(CUSTOM_NAME) then return end
 
 	local sound = Instance.new("Sound")
@@ -29,65 +28,64 @@ local function playCustomLobby()
 
 	sound.Loaded:Connect(function()
 		task.defer(function()
-			stopOtherMusic()
 			sound.Volume = 5
 			sound:Play()
 		end)
 	end)
 
 	task.delay(2, function()
-		if sound and not sound.IsPlaying then
+		if not sound.IsPlaying then
 			sound.Volume = 5
 			sound:Play()
 		end
 	end)
 
-	print("🎵 Playing SafeSpace as lobby theme.")
+	print("🎵 Playing lobby theme override (SafeSpace)")
 end
 
--- 👁️ Watch for default lobby theme being added (initial or repeated)
+-- 🧠 Watch for actual lobby music being inserted
 THEMES_FOLDER.ChildAdded:Connect(function(child)
 	if child:IsA("Sound") and child.Name:lower() == "lobby" then
 		child:GetPropertyChangedSignal("SoundId"):Connect(function()
 			if child.SoundId == TARGET_ID then
-				print("🔁 Detected default lobby theme. Replacing...")
 				child:Destroy()
-				playCustomLobby()
+				playLobbyOverride()
 			end
 		end)
 
 		if child.SoundId == TARGET_ID then
 			child:Destroy()
-			playCustomLobby()
+			playLobbyOverride()
 		end
 	end
 end)
 
--- 🛡️ Monitor for your custom lobby getting deleted
+-- 🛡️ Watch for override deletion
 THEMES_FOLDER.ChildRemoved:Connect(function(child)
 	if child.Name == CUSTOM_NAME then
-		task.wait(1)
-		print("⚠️ LobbyOverride was removed. Reapplying...")
-		playCustomLobby()
+		-- Only recreate if we're still in lobby
+		task.delay(1, function()
+			if MAP_FOLDER:FindFirstChild("Lobby") then
+				print("⚠️ Lobby theme was deleted, recreating...")
+				playLobbyOverride()
+			end
+		end)
 	end
 end)
 
--- 🧹 Periodic safety check
+-- 🚪 Detect when intermission ends (Map changes to not be Lobby)
+MAP_FOLDER.ChildRemoved:Connect(function(child)
+	if child.Name == "Lobby" then
+		stopLobbyOverride()
+	end
+end)
+
+-- 🛑 Optional: Watch for match start
 task.spawn(function()
 	while true do
-		task.wait(6)
-		local found = false
-		for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
-			if s:IsA("Sound") and s.Name == CUSTOM_NAME then
-				found = true
-			elseif s:IsA("Sound") and s.Name:lower() == "lobby" and s.SoundId == TARGET_ID then
-				s:Destroy()
-				playCustomLobby()
-			end
-		end
-
-		if not found then
-			playCustomLobby()
+		task.wait(3)
+		if not MAP_FOLDER:FindFirstChild("Lobby") then
+			stopLobbyOverride()
 		end
 	end
 end)
