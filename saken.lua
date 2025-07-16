@@ -17,6 +17,7 @@ local scriptList = {
     ["Sigma Saken"] = "https://raw.githubusercontent.com/FinalStandEggward/saken/refs/heads/main/sigmasaken.lua",
     ["Old Lobby Theme"] = "https://raw.githubusercontent.com/FinalStandEggward/saken/refs/heads/main/oldlobbytheme.lua",
     ["Rainbow Hitboxes/Markers"] = "https://raw.githubusercontent.com/FinalStandEggward/saken/refs/heads/main/rainbowstuff.lua",
+    ["MaliceGui"] = "https://raw.githubusercontent.com/FinalStandEggward/saken/refs/heads/main/malice.lua",
 }
 
 local executedScripts = {}
