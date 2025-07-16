@@ -25,27 +25,56 @@ end
 -- 🎯 Choose appropriate LMS track
 local function getLMSReplacement(id)
 	if id == LMS_IDS.SelfHatred then
-		local killersFolder = Players:FindFirstChild("Killers")
+		local killersFolder = workspace:FindFirstChild("Players") and workspace.Players:FindFirstChild("Killers")
 		if not killersFolder then
 			return getcustomasset("thedarknessinyourheart.mp3")
 		end
 
-		local killerFoundWithSkin = false
-		for _, killer in pairs(killersFolder:GetChildren()) do
-			local skinValue = killer:FindFirstChild("Skin") or killer:FindFirstChild("SkinValue")
-			if skinValue and skinValue:IsA("StringValue") then
-				if skinValue.Value == "Hacklord1x1x1x1" then
-					killerFoundWithSkin = true
-					break
-				end
+		local killerModel = killersFolder:FindFirstChild("1x1x1x1")
+		if not killerModel then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local hum = killerModel:FindFirstChildOfClass("Humanoid")
+		if not hum or hum.Health <= 500 then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local killerPlayer = nil
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player.Character == killerModel then
+				killerPlayer = player
+				break
 			end
 		end
 
-		if killerFoundWithSkin then
-			return getcustomasset("ProeliumFatale.mp3")
-		else
+		if not killerPlayer then
 			return getcustomasset("thedarknessinyourheart.mp3")
 		end
+
+		local equipped = killerPlayer:FindFirstChild("PlayerData")
+			and killerPlayer.PlayerData:FindFirstChild("Equipped")
+
+		if not equipped then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local killerValue = equipped:FindFirstChild("Killer")
+		if not killerValue or killerValue.Value ~= "1x1x1x1" then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local skinsFolder = equipped:FindFirstChild("Skins")
+		if not skinsFolder then
+			return getcustomasset("thedarknessinyourheart.mp3")
+		end
+
+		local skinValue = skinsFolder:FindFirstChild("1x1x1x1")
+		if skinValue and skinValue.Value == "Hacklord1x1x1x1" then
+			return getcustomasset("ProeliumFatale.mp3")
+		end
+
+		return getcustomasset("thedarknessinyourheart.mp3")
 
 	elseif id == LMS_IDS.VanillaLMS then
 		local options = {
