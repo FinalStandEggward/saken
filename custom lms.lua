@@ -145,12 +145,41 @@ end)
 
 
 -- 🔇 Stop all LMS music when no players are left
-local function stopAllLMSMusic()
-	for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
+-- 🔚 LMS Shutdown: Stop music when both Killers and Survivors folders are empty
+
+local PlayersFolder = workspace:WaitForChild("Players")
+local KillersFolder = PlayersFolder:WaitForChild("Killers")
+local SurvivorsFolder = PlayersFolder:WaitForChild("Survivors")
+local ThemesFolder = workspace:WaitForChild("Themes")
+
+-- 🛑 Stop all currently playing LMS music
+local function stopLMSMusic()
+	for _, sound in ipairs(ThemesFolder:GetChildren()) do
 		if sound:IsA("Sound") and sound.IsPlaying then
-			print("⛔ Stopping LMS theme:", sound.Name)
+			print("🛑 LMS ended - Stopping music:", sound.Name)
 			sound:Stop()
 		end
 	end
 end
 
+-- 🧠 Check if LMS is over
+local function checkLMSOver()
+	task.wait(0.1) -- slight delay to ensure state updates
+	if #KillersFolder:GetChildren() == 0 and #SurvivorsFolder:GetChildren() == 0 then
+		stopLMSMusic()
+	end
+end
+
+-- 🔁 Hook into changes in both folders
+KillersFolder.ChildRemoved:Connect(checkLMSOver)
+SurvivorsFolder.ChildRemoved:Connect(checkLMSOver)
+KillersFolder.ChildAdded:Connect(checkLMSOver)
+SurvivorsFolder.ChildAdded:Connect(checkLMSOver)
+
+-- ⏲️ Failsafe loop in case of mass-clear or race condition
+task.spawn(function()
+	while true do
+		task.wait(5)
+		checkLMSOver()
+	end
+end)
