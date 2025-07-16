@@ -17,8 +17,28 @@ local OLD1X_REPLACEMENTS = {
 	["rbxassetid://97690757653206"]  = getcustomasset("old1xchase.mp3"),
 }
 
--- Current replacement reference (dynamic)
 local ActiveReplacements = {}
+local CURRENT_THEME = "none"
+
+-- 🔒 Force suppression of old1x layer 1
+local function suppressOld1xLayer1(sound)
+	if not sound:IsA("Sound") then return end
+	if sound.SoundId == getcustomasset("old1xlayer1.mp3") or sound.Name == "Destroying" then
+		if sound.Volume > 0 then
+			sound.Volume = 0
+			print("🔇 Suppressed old1xlayer1 / Destroying:", sound.Name)
+		end
+
+		task.defer(function()
+			sound:GetPropertyChangedSignal("Volume"):Connect(function()
+				if sound.Volume > 0 then
+					sound.Volume = 0
+					print("🔁 Re-suppressed:", sound.Name)
+				end
+			end)
+		end)
+	end
+end
 
 -- Applies a REPLACEMENTS table to all current sounds
 local function applyTheme(replacementTable)
@@ -27,13 +47,11 @@ local function applyTheme(replacementTable)
 			sound.SoundId = replacementTable[sound.SoundId]
 
 			if replacementTable == OLD1X_REPLACEMENTS then
-				-- Set volume after load to avoid Roblox resetting it
 				sound.Loaded:Connect(function()
-					sound.Volume = 3
+					sound.Volume = 6
 				end)
 
-
-
+				suppressOld1xLayer1(sound)
 			end
 
 			print("🔁 Replaced SoundId for", sound.Name)
@@ -52,8 +70,10 @@ local function hookNewSounds()
 					if ActiveReplacements == OLD1X_REPLACEMENTS then
 						child.Volume = 0
 						child.Loaded:Connect(function()
-							child.Volume = 3
+							child.Volume = 6
 						end)
+
+						suppressOld1xLayer1(child)
 					end
 
 					print("🔁 Updated SoundId for", child.Name)
@@ -66,8 +86,10 @@ local function hookNewSounds()
 				if ActiveReplacements == OLD1X_REPLACEMENTS then
 					child.Volume = 0
 					child.Loaded:Connect(function()
-						child.Volume = 3
+						child.Volume = 6
 					end)
+
+					suppressOld1xLayer1(child)
 				end
 
 				print("🔁 Replaced SoundId for", child.Name)
@@ -119,6 +141,7 @@ while true do
 	if newTheme and newTheme ~= ActiveReplacements then
 		print("🎵 Switching theme to:", themeName)
 		ActiveReplacements = newTheme
+		CURRENT_THEME = themeName
 		applyTheme(ActiveReplacements)
 	end
 end
