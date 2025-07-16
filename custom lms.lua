@@ -2,89 +2,74 @@ local Players = game:GetService("Players")
 local THEMES_FOLDER = workspace:WaitForChild("Themes")
 local LocalPlayer = Players.LocalPlayer
 
-print("🎵 LMS Replacement System Active")
-
-local PLAYERS_FOLDER = workspace:WaitForChild("Players")
-
-PLAYERS_FOLDER.ChildRemoved:Connect(function()
-	-- Check if no models remain
-	task.delay(0.25, function()
-		local remaining = #PLAYERS_FOLDER:GetChildren()
-		if remaining == 0 then
-			stopAllLMSMusic()
-		end
-	end)
-end)
-
--- Optional: handle cases where they all vanish at once
-PLAYERS_FOLDER.ChildAdded:Connect(function()
-	task.delay(0.25, function()
-		if #PLAYERS_FOLDER:GetChildren() == 0 then
-			stopAllLMSMusic()
-		end
-	end)
-end)
-
-
--- LMS Sound IDs
 local LMS_IDS = {
-	SelfHatred   = "rbxassetid://115884097233860",
-	VanillaLMS   = "rbxassetid://71057332615441",
-	VanityLMS    = "rbxassetid://137266220091579",
+	SelfHatred = "rbxassetid://115884097233860",
+	VanillaLMS = "rbxassetid://71057332615441",
+	VanityLMS  = "rbxassetid://137266220091579",
 }
 
--- Dynamic replacement logic for each LMS type
-local SOUND_OPTIONS = {
-	["SelfHatred"] = function()
-		local killerModel = workspace:FindFirstChild("Players")
+local CUSTOM_NAME = "LMSOverride"
+
+-- 🛑 Stop all other music (except lobby override)
+local function stopOtherThemes()
+	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
+		if s:IsA("Sound") and s.Name ~= CUSTOM_NAME and s.Name ~= "LobbyOverride" then
+			pcall(function()
+				s:Stop()
+				s:Destroy()
+			end)
+		end
+	end
+end
+
+-- 🎯 Choose appropriate LMS track
+local function getLMSReplacement(id)
+	if id == LMS_IDS.SelfHatred then
+		local killer = workspace:FindFirstChild("Players")
 			and workspace.Players:FindFirstChild("Killers")
 			and workspace.Players.Killers:FindFirstChild("1x1x1x1")
 
-		if not killerModel then return getcustomasset("thedarknessinyourheart.mp3") end
+		if not killer then return getcustomasset("thedarknessinyourheart.mp3") end
 
-		local humanoid = killerModel:FindFirstChildOfClass("Humanoid")
-		if not humanoid or humanoid.Health <= 500 then
+		local hum = killer:FindFirstChildOfClass("Humanoid")
+		if not hum or hum.Health <= 500 then
 			return getcustomasset("thedarknessinyourheart.mp3")
 		end
 
-		local equippedSkin = LocalPlayer:FindFirstChild("PlayerData")
+		local skin = LocalPlayer:FindFirstChild("PlayerData")
 			and LocalPlayer.PlayerData:FindFirstChild("Equipped")
 			and LocalPlayer.PlayerData.Equipped:FindFirstChild("Skins")
 			and LocalPlayer.PlayerData.Equipped.Skins:FindFirstChild("1x1x1x1")
 
-		if equippedSkin and equippedSkin.Value == "Hacklord1x1x1x1" then
+		if skin and skin.Value == "Hacklord1x1x1x1" then
 			return getcustomasset("ProeliumFatale.mp3")
 		else
 			return getcustomasset("thedarknessinyourheart.mp3")
 		end
-	end,
 
-	["VanillaLMS"] = function()
-		local pool = {
+	elseif id == LMS_IDS.VanillaLMS then
+		local options = {
 			LMS_IDS.VanillaLMS,
 			getcustomasset("oldlms.mp3"),
 			getcustomasset("oldestlms.mp3"),
 		}
-		return pool[math.random(1, #pool)]
-	end,
+		return options[math.random(1, #options)]
 
-	["VanityLMS"] = function()
+	elseif id == LMS_IDS.VanityLMS then
 		return getcustomasset("vanitylmsretake.mp3")
-	end,
-}
-
--- Sound replacement utility
-local function replaceSound(assetId, getReplacement)
-	local replacement = getReplacement()
-	if replacement == assetId then
-		print("▶️ Keeping original LMS: " .. assetId)
-		return
 	end
+end
+
+-- 🎵 Play a custom LMS theme
+local function playCustomLMS(asset)
+	if THEMES_FOLDER:FindFirstChild(CUSTOM_NAME) then return end
+
+	stopOtherThemes()
 
 	local sound = Instance.new("Sound")
-	sound.Name = "LMSOverride"
-	sound.SoundId = replacement
-	sound.Looped = false
+	sound.Name = CUSTOM_NAME
+	sound.SoundId = asset
+	sound.Looped = true
 	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
@@ -96,90 +81,69 @@ local function replaceSound(assetId, getReplacement)
 	end)
 
 	task.delay(2, function()
-		if sound and not sound.IsPlaying then
+		if not sound.IsPlaying then
 			sound.Volume = 5
 			sound:Play()
 		end
 	end)
 
-	print("🔁 LMS Replaced with:", replacement)
+	print("🎵 Custom LMS started:", asset)
 end
 
--- First pass on existing sounds
-for _, sound in ipairs(THEMES_FOLDER:GetChildren()) do
-	if not sound:IsA("Sound") then continue end
-
-	if sound.SoundId == LMS_IDS.SelfHatred then
-		sound:Destroy()
-		replaceSound(LMS_IDS.SelfHatred, SOUND_OPTIONS["SelfHatred"])
-
-	elseif sound.SoundId == LMS_IDS.VanillaLMS then
-		sound:Destroy()
-		replaceSound(LMS_IDS.VanillaLMS, SOUND_OPTIONS["VanillaLMS"])
-
-	elseif sound.SoundId == LMS_IDS.VanityLMS then
-		sound:Destroy()
-		replaceSound(LMS_IDS.VanityLMS, SOUND_OPTIONS["VanityLMS"])
-	end
-end
-
--- Handle LMS being added live
-THEMES_FOLDER.ChildAdded:Connect(function(child)
-	if not child:IsA("Sound") then return end
-
-	if child.SoundId == LMS_IDS.SelfHatred then
-		child:Destroy()
-		replaceSound(LMS_IDS.SelfHatred, SOUND_OPTIONS["SelfHatred"])
-
-	elseif child.SoundId == LMS_IDS.VanillaLMS then
-		child:Destroy()
-		replaceSound(LMS_IDS.VanillaLMS, SOUND_OPTIONS["VanillaLMS"])
-
-	elseif child.SoundId == LMS_IDS.VanityLMS then
-		child:Destroy()
-		replaceSound(LMS_IDS.VanityLMS, SOUND_OPTIONS["VanityLMS"])
-	end
-end)
-
-
-
-
--- 🔇 Stop all LMS music when no players are left
--- 🔚 LMS Shutdown: Stop music when both Killers and Survivors folders are empty
-
-local PlayersFolder = workspace:WaitForChild("Players")
-local KillersFolder = PlayersFolder:WaitForChild("Killers")
-local SurvivorsFolder = PlayersFolder:WaitForChild("Survivors")
-local ThemesFolder = workspace:WaitForChild("Themes")
-
--- 🛑 Stop all currently playing LMS music
-local function stopLMSMusic()
-	for _, sound in ipairs(ThemesFolder:GetChildren()) do
-		if sound:IsA("Sound") and sound.IsPlaying then
-			print("🛑 LMS ended - Stopping music:", sound.Name)
-			sound:Stop()
+-- 🧠 Handle LMS replacements
+local function handleLMS(child)
+	for label, id in pairs(LMS_IDS) do
+		if child.SoundId == id then
+			local replacement = getLMSReplacement(id)
+			child:Destroy()
+			playCustomLMS(replacement)
+			break
 		end
 	end
 end
 
--- 🧠 Check if LMS is over
-local function checkLMSOver()
-	task.wait(0.1) -- slight delay to ensure state updates
-	if #KillersFolder:GetChildren() == 0 and #SurvivorsFolder:GetChildren() == 0 then
-		stopLMSMusic()
+-- 🔍 Detect LMS music being added
+THEMES_FOLDER.ChildAdded:Connect(function(child)
+	if not child:IsA("Sound") then return end
+	handleLMS(child)
+
+	-- In case SoundId is delayed:
+	child:GetPropertyChangedSignal("SoundId"):Connect(function()
+		handleLMS(child)
+	end)
+end)
+
+-- 🧼 Cleanup when LMS ends (Killers + Survivors empty)
+local function stopLMSIfGameOver()
+	local killers = workspace.Players:FindFirstChild("Killers")
+	local survivors = workspace.Players:FindFirstChild("Survivors")
+	if not killers or not survivors then return end
+
+	if #killers:GetChildren() == 0 and #survivors:GetChildren() == 0 then
+		local override = THEMES_FOLDER:FindFirstChild(CUSTOM_NAME)
+		if override and override:IsA("Sound") and override.IsPlaying then
+			print("🛑 LMS over — stopping theme.")
+			override:Stop()
+			override:Destroy()
+		end
 	end
 end
 
--- 🔁 Hook into changes in both folders
-KillersFolder.ChildRemoved:Connect(checkLMSOver)
-SurvivorsFolder.ChildRemoved:Connect(checkLMSOver)
-KillersFolder.ChildAdded:Connect(checkLMSOver)
-SurvivorsFolder.ChildAdded:Connect(checkLMSOver)
+workspace.Players.Killers.ChildRemoved:Connect(stopLMSIfGameOver)
+workspace.Players.Survivors.ChildRemoved:Connect(stopLMSIfGameOver)
 
--- ⏲️ Failsafe loop in case of mass-clear or race condition
+-- 🩺 Watch for override deletion (by game)
+THEMES_FOLDER.ChildRemoved:Connect(function(child)
+	if child.Name == CUSTOM_NAME then
+		task.wait(1)
+		print("⚠️ LMSOverride removed unexpectedly.")
+	end
+end)
+
+-- 🔁 Failsafe monitor
 task.spawn(function()
 	while true do
 		task.wait(5)
-		checkLMSOver()
+		stopLMSIfGameOver()
 	end
 end)
