@@ -25,23 +25,23 @@ end
 -- 🎯 Choose appropriate LMS track
 local function getLMSReplacement(id)
 	if id == LMS_IDS.SelfHatred then
-		local killer = workspace:FindFirstChild("Players")
-			and workspace.Players:FindFirstChild("Killers")
-			and workspace.Players.Killers:FindFirstChild("1x1x1x1")
-
-		if not killer then return getcustomasset("thedarknessinyourheart.mp3") end
-
-		local hum = killer:FindFirstChildOfClass("Humanoid")
-		if not hum or hum.Health <= 500 then
+		local killersFolder = Players:FindFirstChild("Killers")
+		if not killersFolder then
 			return getcustomasset("thedarknessinyourheart.mp3")
 		end
 
-		local skin = LocalPlayer:FindFirstChild("PlayerData")
-			and LocalPlayer.PlayerData:FindFirstChild("Equipped")
-			and LocalPlayer.PlayerData.Equipped:FindFirstChild("Skins")
-			and LocalPlayer.PlayerData.Equipped.Skins:FindFirstChild("1x1x1x1")
+		local killerFoundWithSkin = false
+		for _, killer in pairs(killersFolder:GetChildren()) do
+			local skinValue = killer:FindFirstChild("Skin") or killer:FindFirstChild("SkinValue")
+			if skinValue and skinValue:IsA("StringValue") then
+				if skinValue.Value == "Hacklord1x1x1x1" then
+					killerFoundWithSkin = true
+					break
+				end
+			end
+		end
 
-		if skin and skin.Value == "Hacklord1x1x1x1" then
+		if killerFoundWithSkin then
 			return getcustomasset("ProeliumFatale.mp3")
 		else
 			return getcustomasset("thedarknessinyourheart.mp3")
@@ -115,8 +115,8 @@ end)
 
 -- 🧼 Cleanup when LMS ends (Killers + Survivors empty)
 local function stopLMSIfGameOver()
-	local killers = workspace.Players:FindFirstChild("Killers")
-	local survivors = workspace.Players:FindFirstChild("Survivors")
+	local killers = Players:FindFirstChild("Killers")
+	local survivors = Players:FindFirstChild("Survivors")
 	if not killers or not survivors then return end
 
 	if #killers:GetChildren() == 0 and #survivors:GetChildren() == 0 then
@@ -129,8 +129,16 @@ local function stopLMSIfGameOver()
 	end
 end
 
-workspace.Players.Killers.ChildRemoved:Connect(stopLMSIfGameOver)
-workspace.Players.Survivors.ChildRemoved:Connect(stopLMSIfGameOver)
+local killersFolder = Players:FindFirstChild("Killers")
+local survivorsFolder = Players:FindFirstChild("Survivors")
+
+if killersFolder then
+	killersFolder.ChildRemoved:Connect(stopLMSIfGameOver)
+end
+
+if survivorsFolder then
+	survivorsFolder.ChildRemoved:Connect(stopLMSIfGameOver)
+end
 
 -- 🩺 Watch for override deletion (by game)
 THEMES_FOLDER.ChildRemoved:Connect(function(child)
