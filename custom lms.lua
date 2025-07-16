@@ -10,6 +10,19 @@ local LMS_IDS = {
 
 local CUSTOM_NAME = "LMSOverride"
 
+-- 🔇 Kill any active chase themes renamed by the game
+local function stopChaseThemes()
+	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
+		if s:IsA("Sound") and s.Name == "Destroying" then
+			print("🔇 Stopping suppressed chase theme:", s.SoundId)
+			pcall(function()
+				s:Stop()
+				s:Destroy()
+			end)
+		end
+	end
+end
+
 -- 🛑 Stop all other music (except lobby override)
 local function stopOtherThemes()
 	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
@@ -119,25 +132,11 @@ local function playCustomLMS(asset)
 	print("🎵 Custom LMS started:", asset)
 end
 
--- 🔇 Kill any chase themes when LMS starts
-local function stopChaseThemes()
-	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
-		if s:IsA("Sound") and (s.Name:lower():find("chase") or s.Name == "Destroying") then
-			pcall(function()
-				s:Stop()
-				s:Destroy()
-			end)
-		end
-	end
-end
-
-
-
-
 -- 🧠 Handle LMS replacements
 local function handleLMS(child)
 	for label, id in pairs(LMS_IDS) do
 		if child.SoundId == id then
+			stopChaseThemes() -- 🔇 Kill renamed chase themes
 			local replacement = getLMSReplacement(id)
 			child:Destroy()
 			playCustomLMS(replacement)
@@ -170,9 +169,11 @@ local function stopLMSIfGameOver()
 			override:Stop()
 			override:Destroy()
 		end
+		stopChaseThemes() -- 🔇 Clean up again
 	end
 end
 
+-- 📡 Connect to LMS end detection
 local killersFolder = Players:FindFirstChild("Killers")
 local survivorsFolder = Players:FindFirstChild("Survivors")
 
@@ -197,5 +198,6 @@ task.spawn(function()
 	while true do
 		task.wait(5)
 		stopLMSIfGameOver()
+		stopChaseThemes() -- 🔁 In case one gets renamed mid-match
 	end
 end)
