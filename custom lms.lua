@@ -10,18 +10,30 @@ local LMS_IDS = {
 
 local CUSTOM_NAME = "LMSOverride"
 
--- 🔇 Suppress any active "Destroying" chase themes
-local function stopChaseThemes()
+-- 🚨 Actively suppress and monitor "Destroying" chase themes
+local function monitorDestroyingSounds()
 	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
 		if s:IsA("Sound") and s.Name == "Destroying" then
 			if s.Volume > 0 then
-				print("🔇 Suppressing 'Destroying' theme:", s.SoundId)
-				pcall(function()
-					s.Volume = 0
-				end)
+				s.Volume = 0
+				print("🔇 Instantly suppressed:", s.SoundId)
 			end
+			-- Listen for future volume changes and re-suppress
+			task.defer(function()
+				s:GetPropertyChangedSignal("Volume"):Connect(function()
+					if s.Volume > 0 then
+						s.Volume = 0
+						print("🔁 Re-suppressed:", s.SoundId)
+					end
+				end)
+			end)
 		end
 	end
+end
+
+-- 🔇 Wrapper for suppression logic
+local function stopChaseThemes()
+	monitorDestroyingSounds()
 end
 
 -- 🛑 Stop all other music (except lobby override)
@@ -112,7 +124,7 @@ local function playCustomLMS(asset)
 	local sound = Instance.new("Sound")
 	sound.Name = CUSTOM_NAME
 	sound.SoundId = asset
-	sound.Looped = false
+	sound.Looped = true
 	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
