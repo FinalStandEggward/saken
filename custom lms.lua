@@ -10,15 +10,16 @@ local LMS_IDS = {
 
 local CUSTOM_NAME = "LMSOverride"
 
--- 🔇 Kill any active chase themes renamed by the game
+-- 🔇 Suppress any active "Destroying" chase themes
 local function stopChaseThemes()
 	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
 		if s:IsA("Sound") and s.Name == "Destroying" then
-			print("🔇 Stopping suppressed chase theme:", s.SoundId)
-			pcall(function()
-				s:Stop()
-				s:Destroy()
-			end)
+			if s.Volume > 0 then
+				print("🔇 Suppressing 'Destroying' theme:", s.SoundId)
+				pcall(function()
+					s.Volume = 0
+				end)
+			end
 		end
 	end
 end
@@ -111,7 +112,7 @@ local function playCustomLMS(asset)
 	local sound = Instance.new("Sound")
 	sound.Name = CUSTOM_NAME
 	sound.SoundId = asset
-	sound.Looped = true
+	sound.Looped = false
 	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
@@ -136,7 +137,7 @@ end
 local function handleLMS(child)
 	for label, id in pairs(LMS_IDS) do
 		if child.SoundId == id then
-			stopChaseThemes() -- 🔇 Kill renamed chase themes
+			stopChaseThemes() -- 🔇 Suppress renamed chase themes
 			local replacement = getLMSReplacement(id)
 			child:Destroy()
 			playCustomLMS(replacement)
