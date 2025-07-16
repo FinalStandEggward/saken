@@ -119,6 +119,21 @@ local function playCustomLMS(asset)
 	print("🎵 Custom LMS started:", asset)
 end
 
+-- 🔇 Kill any chase themes when LMS starts
+local function stopChaseThemes()
+	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
+		if s:IsA("Sound") and (s.Name:lower():find("chase") or s.Name == "Destroying") then
+			pcall(function()
+				s:Stop()
+				s:Destroy()
+			end)
+		end
+	end
+end
+
+
+
+
 -- 🧠 Handle LMS replacements
 local function handleLMS(child)
 	for label, id in pairs(LMS_IDS) do
