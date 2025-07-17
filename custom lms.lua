@@ -124,7 +124,7 @@ local function playCustomLMS(asset)
 	local sound = Instance.new("Sound")
 	sound.Name = CUSTOM_NAME
 	sound.SoundId = asset
-	sound.Looped = true
+	sound.Looped = false
 	sound.Volume = 0
 	sound.Parent = THEMES_FOLDER
 
