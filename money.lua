@@ -71,7 +71,7 @@ end
 local function update()
 	local msg = "$ " .. tostring(Money.Value)
 	if hasMostMoney() then
-		msg = msg .. " (You have the most)"
+		msg = msg .. " (🤑🤑🤑)"
 	end
 	valueLabel.Text = msg
 end
