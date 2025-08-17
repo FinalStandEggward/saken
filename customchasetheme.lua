@@ -1,6 +1,6 @@
 local Players = game:GetService("Players")
 local THEMES_FOLDER = workspace:WaitForChild("Themes")
-print("🔊 Custom Self-Hatred Theme Override Watching Player Loadouts")
+print("🔊 Custom Theme Override Watching Player Loadouts")
 
 -- Theme replacement sets
 local SELF_HATRED_REPLACEMENTS = {
@@ -14,6 +14,12 @@ local OLD1X_REPLACEMENTS = {
     ["rbxassetid://107607873139123"] = getcustomasset("old1xlayer2.mp3"),
     ["rbxassetid://105551772469406"] = getcustomasset("old1xlayer3.mp3"),
     ["rbxassetid://97690757653206"]  = getcustomasset("old1xchase.mp3"),
+}
+local NIGHT16_REPLACEMENTS = {
+    ["rbxassetid://139957641994343"] = getcustomasset("16thlayer1.mp3"),
+    ["rbxassetid://107607873139123"] = getcustomasset("16thlayer2.mp3"),
+    ["rbxassetid://105551772469406"] = getcustomasset("16thlayer3.mp3"),
+    ["rbxassetid://97690757653206"]  = getcustomasset("16thchase.mp3"),
 }
 local ActiveReplacements = {}
 local CURRENT_THEME = "none"
@@ -62,6 +68,8 @@ local function determineTheme()
         if killerName == "1x1x1x1" then
             if skinName and skinName.Value == "Hacklord1x1x1x1" then
                 return SELF_HATRED_REPLACEMENTS, "selfhatred"
+            elseif skinName and skinName.Value == "16thNight1x1x1x1" then
+                return NIGHT16_REPLACEMENTS, "16thnight"
             else
                 return OLD1X_REPLACEMENTS, "old1x"
             end
