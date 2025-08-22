@@ -1,28 +1,55 @@
+-- // 🔊 Custom Theme Override Script with Auto Downloader
 local Players = game:GetService("Players")
 local THEMES_FOLDER = workspace:WaitForChild("Themes")
-print("🔊 Custom Theme Override Watching Player Loadouts")
 
--- Theme replacement sets
+-- Folder for local MP3s
+local FOLDER_NAME = "CustomThemes"
+
+if not isfolder(FOLDER_NAME) then
+    makefolder(FOLDER_NAME)
+    print("📂 Created folder:", FOLDER_NAME)
+end
+
+-- // Downloader Function
+local function downloadIfMissing(filename, url)
+    local filepath = FOLDER_NAME.."/"..filename
+    if not isfile(filepath) then
+        print("⬇️ Downloading:", filename)
+        local data = game:HttpGet(url)
+        writefile(filepath, data)
+    else
+        print("✅ File already exists:", filename)
+    end
+    return getcustomasset(filepath)
+end
+
+-- // Base GitHub URL
+local GITHUB_BASE = "https://github.com/FinalStandEggward/saken/raw/refs/heads/main/"
+
+-- // Theme replacement sets
 local SELF_HATRED_REPLACEMENTS = {
-    ["rbxassetid://139957641994343"] = getcustomasset("layer1selfhatred.mp3"),
-    ["rbxassetid://107607873139123"] = getcustomasset("layer2selfhatred.mp3"),
-    ["rbxassetid://105551772469406"] = getcustomasset("layer3selfhatred.mp3"),
-    ["rbxassetid://97690757653206"]  = getcustomasset("chaseselfhatred.mp3"),
+    ["rbxassetid://139957641994343"] = downloadIfMissing("layer1selfhatred.mp3", GITHUB_BASE.."layer1selfhatred.mp3"),
+    ["rbxassetid://107607873139123"] = downloadIfMissing("layer2selfhatred.mp3", GITHUB_BASE.."layer2selfhatred.mp3"),
+    ["rbxassetid://105551772469406"] = downloadIfMissing("layer3selfhatred.mp3", GITHUB_BASE.."layer3selfhatred.mp3"),
+    ["rbxassetid://97690757653206"]  = downloadIfMissing("chaseselfhatred.mp3", GITHUB_BASE.."chaseselfhatred.mp3"),
 }
 local OLD1X_REPLACEMENTS = {
-    ["rbxassetid://139957641994343"] = getcustomasset("old1xlayer1.mp3"),
-    ["rbxassetid://107607873139123"] = getcustomasset("old1xlayer2.mp3"),
-    ["rbxassetid://105551772469406"] = getcustomasset("old1xlayer3.mp3"),
-    ["rbxassetid://97690757653206"]  = getcustomasset("old1xchase.mp3"),
+    ["rbxassetid://139957641994343"] = downloadIfMissing("old1xlayer1.mp3", GITHUB_BASE.."old1xlayer1.mp3"),
+    ["rbxassetid://107607873139123"] = downloadIfMissing("old1xlayer2.mp3", GITHUB_BASE.."old1xlayer2.mp3"),
+    ["rbxassetid://105551772469406"] = downloadIfMissing("old1xlayer3.mp3", GITHUB_BASE.."old1xlayer3.mp3"),
+    ["rbxassetid://97690757653206"]  = downloadIfMissing("old1xchase.mp3", GITHUB_BASE.."old1xchase.mp3"),
 }
 local NIGHT16_REPLACEMENTS = {
-    ["rbxassetid://139957641994343"] = getcustomasset("16thlayer1.mp3"),
-    ["rbxassetid://107607873139123"] = getcustomasset("16thlayer2.mp3"),
-    ["rbxassetid://105551772469406"] = getcustomasset("16thlayer3.mp3"),
-    ["rbxassetid://97690757653206"]  = getcustomasset("16thchase.mp3"),
+    ["rbxassetid://139957641994343"] = downloadIfMissing("16thlayer1.mp3", GITHUB_BASE.."16thlayer1.mp3"),
+    ["rbxassetid://107607873139123"] = downloadIfMissing("16thlayer2.mp3", GITHUB_BASE.."16thlayer2.mp3"),
+    ["rbxassetid://105551772469406"] = downloadIfMissing("16thlayer3.mp3", GITHUB_BASE.."16thlayer3.mp3"),
+    ["rbxassetid://97690757653206"]  = downloadIfMissing("16thchase.mp3", GITHUB_BASE.."16thchase.mp3"),
 }
+
 local ActiveReplacements = {}
 local CURRENT_THEME = "none"
+
+print("🔊 Custom Theme Override Watching Player Loadouts")
 
 -- Applies a REPLACEMENTS table to all current sounds
 local function applyTheme(replacementTable)
