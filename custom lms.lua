@@ -4,8 +4,8 @@ local LocalPlayer = Players.LocalPlayer
 
 local LMS_IDS = {
 	SelfHatred = "rbxassetid://115884097233860",
-	VanillaLMS = "rbxassetid://71057332615441",
 	VanityLMS  = "rbxassetid://137266220091579",
+	Plead      = "rbxassetid://80814147615195", -- new ID replacement
 }
 
 local CUSTOM_NAME = "LMSOverride"
@@ -53,17 +53,17 @@ local function getLMSReplacement(id)
 	if id == LMS_IDS.SelfHatred then
 		local killersFolder = workspace:FindFirstChild("Players") and workspace.Players:FindFirstChild("Killers")
 		if not killersFolder then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local killerModel = killersFolder:FindFirstChild("1x1x1x1")
 		if not killerModel then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local hum = killerModel:FindFirstChildOfClass("Humanoid")
 		if not hum or hum.Health <= 500 then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local killerPlayer = nil
@@ -75,24 +75,24 @@ local function getLMSReplacement(id)
 		end
 
 		if not killerPlayer then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local equipped = killerPlayer:FindFirstChild("PlayerData")
 			and killerPlayer.PlayerData:FindFirstChild("Equipped")
 
 		if not equipped then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local killerValue = equipped:FindFirstChild("Killer")
 		if not killerValue or killerValue.Value ~= "1x1x1x1" then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local skinsFolder = equipped:FindFirstChild("Skins")
 		if not skinsFolder then
-			return getcustomasset("thedarknessinyourheart.mp3")
+			return getcustomasset("meetyourmaking.mp3")
 		end
 
 		local skinValue = skinsFolder:FindFirstChild("1x1x1x1")
@@ -100,18 +100,13 @@ local function getLMSReplacement(id)
 			return getcustomasset("ProeliumFatale.mp3")
 		end
 
-		return getcustomasset("thedarknessinyourheart.mp3")
-
-	elseif id == LMS_IDS.VanillaLMS then
-		local options = {
-			LMS_IDS.VanillaLMS,
-			getcustomasset("oldlms.mp3"),
-			getcustomasset("oldestlms.mp3"),
-		}
-		return options[math.random(1, #options)]
+		return getcustomasset("meetyourmaking.mp3")
 
 	elseif id == LMS_IDS.VanityLMS then
 		return getcustomasset("vanitylmsretake.mp3")
+
+	elseif id == LMS_IDS.Plead then
+		return getcustomasset("meetyourmaking.mp3")
 	end
 end
 
