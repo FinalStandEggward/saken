@@ -5,12 +5,13 @@ local LocalPlayer = Players.LocalPlayer
 local LMS_IDS = {
 	SelfHatred = "rbxassetid://115884097233860",
 	VanityLMS  = "rbxassetid://137266220091579",
-	Plead      = "rbxassetid://80814147615195", -- new ID replacement
+	Plead      = "rbxassetid://80814147615195",
+	RemorseRedux = "rbxassetid://88279626466849"
 }
 
 local CUSTOM_NAME = "LMSOverride"
 
--- 🚨 Actively suppress and monitor "Destroying" chase themes
+-- 🚨 Suppress "Destroying" chase themes
 local function monitorDestroyingSounds()
 	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
 		if s:IsA("Sound") and s.Name == "Destroying" then
@@ -18,7 +19,6 @@ local function monitorDestroyingSounds()
 				s.Volume = 0
 				print("🔇 Instantly suppressed:", s.SoundId)
 			end
-			-- Listen for future volume changes and re-suppress
 			task.defer(function()
 				s:GetPropertyChangedSignal("Volume"):Connect(function()
 					if s.Volume > 0 then
@@ -31,12 +31,12 @@ local function monitorDestroyingSounds()
 	end
 end
 
--- 🔇 Wrapper for suppression logic
+-- 🔇 Wrapper
 local function stopChaseThemes()
 	monitorDestroyingSounds()
 end
 
--- 🛑 Stop all other music (except lobby override)
+-- 🛑 Stop other music except override
 local function stopOtherThemes()
 	for _, s in ipairs(THEMES_FOLDER:GetChildren()) do
 		if s:IsA("Sound") and s.Name ~= CUSTOM_NAME and s.Name ~= "LobbyOverride" then
@@ -48,69 +48,18 @@ local function stopOtherThemes()
 	end
 end
 
--- 🎯 Choose appropriate LMS track
+-- 🎯 LMS replacement logic
 local function getLMSReplacement(id)
-	if id == LMS_IDS.SelfHatred then
-		local killersFolder = workspace:FindFirstChild("Players") and workspace.Players:FindFirstChild("Killers")
-		if not killersFolder then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local killerModel = killersFolder:FindFirstChild("1x1x1x1")
-		if not killerModel then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local hum = killerModel:FindFirstChildOfClass("Humanoid")
-		if not hum or hum.Health <= 500 then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local killerPlayer = nil
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player.Character == killerModel then
-				killerPlayer = player
-				break
-			end
-		end
-
-		if not killerPlayer then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local equipped = killerPlayer:FindFirstChild("PlayerData")
-			and killerPlayer.PlayerData:FindFirstChild("Equipped")
-
-		if not equipped then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local killerValue = equipped:FindFirstChild("Killer")
-		if not killerValue or killerValue.Value ~= "1x1x1x1" then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local skinsFolder = equipped:FindFirstChild("Skins")
-		if not skinsFolder then
-			return getcustomasset("meetyourmaking.mp3")
-		end
-
-		local skinValue = skinsFolder:FindFirstChild("1x1x1x1")
-		if skinValue and skinValue.Value == "Hacklord1x1x1x1" then
-			return getcustomasset("ProeliumFatale.mp3")
-		end
-
+	if id == LMS_IDS.SelfHatred or id == LMS_IDS.Plead then
 		return getcustomasset("meetyourmaking.mp3")
-
 	elseif id == LMS_IDS.VanityLMS then
 		return getcustomasset("vanitylmsretake.mp3")
-
-	elseif id == LMS_IDS.Plead then
-		return getcustomasset("meetyourmaking.mp3")
+	elseif id == LMS_IDS.RemorseRedux then
+		return getcustomasset("remorseredux.mp3")
 	end
 end
 
--- 🎵 Play a custom LMS theme
+-- 🎵 Play custom LMS theme
 local function playCustomLMS(asset)
 	if THEMES_FOLDER:FindFirstChild(CUSTOM_NAME) then return end
 
@@ -144,7 +93,7 @@ end
 local function handleLMS(child)
 	for label, id in pairs(LMS_IDS) do
 		if child.SoundId == id then
-			stopChaseThemes() -- 🔇 Suppress renamed chase themes
+			stopChaseThemes()
 			local replacement = getLMSReplacement(id)
 			child:Destroy()
 			playCustomLMS(replacement)
@@ -157,14 +106,12 @@ end
 THEMES_FOLDER.ChildAdded:Connect(function(child)
 	if not child:IsA("Sound") then return end
 	handleLMS(child)
-
-	-- In case SoundId is delayed:
 	child:GetPropertyChangedSignal("SoundId"):Connect(function()
 		handleLMS(child)
 	end)
 end)
 
--- 🧼 Cleanup when LMS ends (Killers + Survivors empty)
+-- 🧼 Cleanup when LMS ends
 local function stopLMSIfGameOver()
 	local killers = Players:FindFirstChild("Killers")
 	local survivors = Players:FindFirstChild("Survivors")
@@ -177,23 +124,22 @@ local function stopLMSIfGameOver()
 			override:Stop()
 			override:Destroy()
 		end
-		stopChaseThemes() -- 🔇 Clean up again
+		stopChaseThemes()
 	end
 end
 
--- 📡 Connect to LMS end detection
+-- 📡 Connect LMS end detection
 local killersFolder = Players:FindFirstChild("Killers")
 local survivorsFolder = Players:FindFirstChild("Survivors")
 
 if killersFolder then
 	killersFolder.ChildRemoved:Connect(stopLMSIfGameOver)
 end
-
 if survivorsFolder then
 	survivorsFolder.ChildRemoved:Connect(stopLMSIfGameOver)
 end
 
--- 🩺 Watch for override deletion (by game)
+-- 🩺 Monitor override deletion
 THEMES_FOLDER.ChildRemoved:Connect(function(child)
 	if child.Name == CUSTOM_NAME then
 		task.wait(1)
@@ -206,6 +152,6 @@ task.spawn(function()
 	while true do
 		task.wait(5)
 		stopLMSIfGameOver()
-		stopChaseThemes() -- 🔁 In case one gets renamed mid-match
+		stopChaseThemes()
 	end
 end)
