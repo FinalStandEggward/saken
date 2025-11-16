@@ -34,10 +34,10 @@ local SELF_HATRED_REPLACEMENTS = {
     ["rbxassetid://97690757653206"]  = downloadIfMissing("chaseselfhatred.mp3", GITHUB_BASE.."chaseselfhatred.mp3"),
 }
 local OLD1X_REPLACEMENTS = {
-    ["rbxassetid://139957641994343"] = downloadIfMissing("old1xlayer1.mp3", GITHUB_BASE.."old1xlayer1.mp3"),
-    ["rbxassetid://107607873139123"] = downloadIfMissing("old1xlayer2.mp3", GITHUB_BASE.."old1xlayer2.mp3"),
-    ["rbxassetid://105551772469406"] = downloadIfMissing("old1xlayer3.mp3", GITHUB_BASE.."old1xlayer3.mp3"),
-    ["rbxassetid://97690757653206"]  = downloadIfMissing("old1xchase.mp3", GITHUB_BASE.."old1xchase.mp3"),
+    ["rbxassetid://139957641994343"] = downloadIfMissing("vigilantelayer1.mp3", GITHUB_BASE.."vigilantelayer1.mp3"),
+    ["rbxassetid://107607873139123"] = downloadIfMissing("vigilantelayer2.mp3", GITHUB_BASE.."vigilantelayer2.mp3"),
+    ["rbxassetid://105551772469406"] = downloadIfMissing("vigilantelayer3.mp3", GITHUB_BASE.."vigilantelayer3.mp3"),
+    ["rbxassetid://97690757653206"]  = downloadIfMissing("vigilantechase.mp3", GITHUB_BASE.."vigilantechase.mp3"),
 }
 local NIGHT16_REPLACEMENTS = {
     ["rbxassetid://139957641994343"] = downloadIfMissing("16thlayer1.mp3", GITHUB_BASE.."16thlayer1.mp3"),
@@ -118,3 +118,4 @@ while true do
         applyTheme(ActiveReplacements)
     end
 end
+
